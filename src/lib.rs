@@ -1,6 +1,6 @@
 #![doc = include_str!("../README.md")]
 
-use atty::Stream;
+pub use atty::Stream;
 use regex::Regex;
 
 lazy_static::lazy_static! {
