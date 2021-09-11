@@ -1,6 +1,5 @@
 Detects whether a terminal supports color, and gives details about that
-support. It takes into account the `COLOR` and `NO_COLOR` environment
-variables.
+support. It takes into account the `NO_COLOR` environment variable.
 
 This crate is a Rust port of [@sindresorhus](https://github.com/sindresorhus)'
 [NPM package by the same name](https://npm.im/supports-color).

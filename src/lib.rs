@@ -36,15 +36,18 @@ fn translate_level(level: usize) -> Option<ColorLevel> {
 
 fn supports_color(stream: Stream) -> usize {
     let force_color = env_force_color();
+    let no_color = match std::env::var("NO_COLOR") {
+        Ok(val) if val == *"0" => false,
+        Ok(_) => true,
+        Err(_) => false,
+    };
     let min = std::cmp::max(force_color, 0);
-    if force_color == 0 || !atty::is(stream) {
+    if force_color > 0 {
+        force_color
+    } else if !atty::is(stream) || no_color {
         0
     } else if std::env::var("TERM") == Ok("dumb".into()) {
         min
-    } else if std::env::consts::OS == "windows" || ci_info::is_ci() {
-        // Don't bother with fancy color if it's not a known-good terminal, on
-        // Windows.
-        1
     } else if std::env::var("COLORTERM") == Ok("truecolor".into())
         || std::env::var("TERM_PROGRAM") == Ok("iTerm.app".into())
         || std::env::var("TERM").map(|term| TERM_256_COLOR_REGEX.is_match(&term)) == Ok(true)
@@ -54,6 +57,8 @@ fn supports_color(stream: Stream) -> usize {
         2
     } else if std::env::var("COLORTERM").is_ok()
         || std::env::var("TERM").map(|term| TERM_ANSI_REGEX.is_match(&term)) == Ok(true)
+        || std::env::consts::OS == "windows"
+        || ci_info::is_ci()
     {
         1
     } else {
