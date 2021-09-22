@@ -2,6 +2,9 @@
 
 pub use atty::Stream;
 
+use std::cell::UnsafeCell;
+use std::sync::Once;
+
 fn env_force_color() -> usize {
     if let Ok(force) = std::env::var("FORCE_COLOR") {
         match force.as_ref() {
@@ -84,12 +87,49 @@ pub fn on(stream: Stream) -> Option<ColorLevel> {
     translate_level(supports_color(stream))
 }
 
+struct CacheCell(UnsafeCell<Option<ColorLevel>>);
+
+unsafe impl Sync for CacheCell {}
+
+static INIT: [Once; 3] = [Once::new(), Once::new(), Once::new()];
+static ON_CACHE: [CacheCell; 3] = [
+    CacheCell(UnsafeCell::new(None)),
+    CacheCell(UnsafeCell::new(None)),
+    CacheCell(UnsafeCell::new(None)),
+];
+
+macro_rules! assert_stream_in_bounds {
+    ($($variant:ident)*) => {
+        $(
+            const _: () = [(); 3][Stream::$variant as usize];
+        )*
+    };
+}
+
+// Compile-time assertion that the below indexing will never panic
+assert_stream_in_bounds!(Stdout Stderr Stdin);
+
+/**
+Returns a [ColorLevel] if a [Stream] supports terminal colors, caching the result to
+be returned from then on.
+
+If you expect your environment to change between calls, use [`on`]
+*/
+pub fn on_cached(stream: Stream) -> Option<ColorLevel> {
+    let stream_index = stream as usize;
+    INIT[stream_index].call_once(|| unsafe {
+        *ON_CACHE[stream_index].0.get() = translate_level(supports_color(stream));
+    });
+
+    unsafe { *ON_CACHE[stream_index].0.get() }
+}
+
 /**
 Color level support details.
 
 This type is returned from [on]. See documentation for its fields for more details.
 */
-#[derive(Debug, Clone, Eq, PartialEq, Hash)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
 pub struct ColorLevel {
     level: usize,
     /// Basic ANSI colors are supported.
