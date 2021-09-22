@@ -1,5 +1,12 @@
 # `supports-color` Release Changelog
 
+<a name="1.0.4"></a>
+## 1.0.4 (2021-09-22)
+
+### Bug Fixes
+
+* **deps:** remove dependencies on regex and lazy-static too ([366f5b92](https://github.com/zkat/supports-color/commit/366f5b92c8c806572f74adc91e8716e434a95efb))
+
 <a name="1.0.3"></a>
 ## 1.0.3 (2021-09-22)
 
