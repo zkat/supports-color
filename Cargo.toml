@@ -14,4 +14,4 @@ edition = "2018"
 
 [dependencies]
 atty = "0.2.14"
-is_ci = "1.0.1"
+is_ci = "1.1.1"
