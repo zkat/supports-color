@@ -58,7 +58,7 @@ fn supports_color(stream: Stream) -> usize {
     } else if std::env::var("COLORTERM").is_ok()
         || std::env::var("TERM").map(|term| TERM_ANSI_REGEX.is_match(&term)) == Ok(true)
         || std::env::consts::OS == "windows"
-        || ci_info::is_ci()
+        || is_ci::is_ci()
     {
         1
     } else {
