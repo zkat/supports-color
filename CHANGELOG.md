@@ -1,5 +1,12 @@
 # `supports-color` Release Changelog
 
+<a name="1.1.0"></a>
+## 1.1.0 (2021-09-22)
+
+### Features
+
+* **api:** Add cached version of supports_color::on (#1) ([2cf2b76f](https://github.com/zkat/supports-color/commit/2cf2b76f585d591acda45c28bffeeba28d030bfd))
+
 <a name="1.0.4"></a>
 ## 1.0.4 (2021-09-22)
 
