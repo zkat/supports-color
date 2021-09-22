@@ -1,5 +1,12 @@
 # `supports-color` Release Changelog
 
+<a name="1.0.3"></a>
+## 1.0.3 (2021-09-22)
+
+### Bug Fixes
+
+* **deps:** switch to much more lightweight is_ci ([d481c017](https://github.com/zkat/supports-color/commit/d481c01754ebaefa7bcaf154b8a7c7d8d25bebb5))
+
 <a name="1.0.2"></a>
 ## 1.0.2 (2021-09-11)
 
