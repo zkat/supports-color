@@ -15,5 +15,3 @@ edition = "2018"
 [dependencies]
 atty = "0.2.14"
 is_ci = "1.0.1"
-lazy_static = "1.4.0"
-regex = "1.5.4"

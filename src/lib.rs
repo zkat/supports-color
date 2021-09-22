@@ -1,12 +1,6 @@
 #![doc = include_str!("../README.md")]
 
 pub use atty::Stream;
-use regex::Regex;
-
-lazy_static::lazy_static! {
-    static ref TERM_256_COLOR_REGEX: Regex = Regex::new(r"-256(color)?$").unwrap();
-    static ref TERM_ANSI_REGEX: Regex = Regex::new(r"^screen|^xterm|^vt100|^vt220|^rxvt|color|ansi|cygwin|linux").unwrap();
-}
 
 fn env_force_color() -> usize {
     if let Ok(force) = std::env::var("FORCE_COLOR") {
@@ -50,20 +44,37 @@ fn supports_color(stream: Stream) -> usize {
         min
     } else if std::env::var("COLORTERM") == Ok("truecolor".into())
         || std::env::var("TERM_PROGRAM") == Ok("iTerm.app".into())
-        || std::env::var("TERM").map(|term| TERM_256_COLOR_REGEX.is_match(&term)) == Ok(true)
     {
         3
-    } else if std::env::var("TERM_PROGRAM") == Ok("Apple_Terminal".into()) {
+    } else if std::env::var("TERM_PROGRAM") == Ok("Apple_Terminal".into())
+        || std::env::var("TERM").map(|term| check_256_color(&term)) == Ok(true)
+    {
         2
     } else if std::env::var("COLORTERM").is_ok()
-        || std::env::var("TERM").map(|term| TERM_ANSI_REGEX.is_match(&term)) == Ok(true)
+        || std::env::var("TERM").map(|term| check_ansi_color(&term)) == Ok(true)
         || std::env::consts::OS == "windows"
-        || is_ci::is_ci()
+        || is_ci::uncached()
     {
         1
     } else {
         min
     }
+}
+
+fn check_ansi_color(term: &str) -> bool {
+    term.starts_with("screen")
+        || term.starts_with("xterm")
+        || term.starts_with("vt100")
+        || term.starts_with("vt220")
+        || term.starts_with("rxvt")
+        || term.contains("color")
+        || term.contains("ansi")
+        || term.contains("cygwin")
+        || term.contains("linux")
+}
+
+fn check_256_color(term: &str) -> bool {
+    term.ends_with("256") || term.ends_with("256color")
 }
 
 /**
