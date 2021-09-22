@@ -1,5 +1,12 @@
 # `supports-color` Release Changelog
 
+<a name="1.1.1"></a>
+## 1.1.1 (2021-09-22)
+
+### Bug Fixes
+
+* **deps:** bump is_ci because of missing api ([31d57374](https://github.com/zkat/supports-color/commit/31d5737420ae2a587e63f4ce03ad3099dad25289))
+
 <a name="1.1.0"></a>
 ## 1.1.0 (2021-09-22)
 
