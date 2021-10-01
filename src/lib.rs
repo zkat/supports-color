@@ -13,6 +13,12 @@ fn env_force_color() -> usize {
             f if f.is_empty() => 1,
             f => std::cmp::min(f.parse().unwrap_or(1), 3),
         }
+    } else if let Ok(cli_clr_force) = std::env::var("CLICOLOR_FORCE") {
+        if cli_clr_force != "0" {
+            1
+        } else {
+            0
+        }
     } else {
         0
     }
@@ -57,6 +63,7 @@ fn supports_color(stream: Stream) -> usize {
         || std::env::var("TERM").map(|term| check_ansi_color(&term)) == Ok(true)
         || std::env::consts::OS == "windows"
         || is_ci::uncached()
+        || std::env::var("CLICOLOR") != Ok("0".into())
     {
         1
     } else {
@@ -138,4 +145,46 @@ pub struct ColorLevel {
     pub has_256: bool,
     /// 16 million (RGB) colors are supported.
     pub has_16m: bool,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn set_up() {
+        // clears process env variable
+        std::env::vars().for_each(|(k, _v)| std::env::remove_var(k));
+    }
+
+    #[test]
+    fn test_clicolor_ansi() {
+        set_up();
+
+        std::env::set_var("CLICOLOR", "1");
+        let expected = Some(ColorLevel {
+            level: 1,
+            has_basic: true,
+            has_256: false,
+            has_16m: false,
+        });
+        assert_eq!(on(atty::Stream::Stdout), expected);
+
+        std::env::set_var("CLICOLOR", "0");
+        assert_eq!(on(atty::Stream::Stderr), None);
+    }
+
+    #[test]
+    fn test_clicolor_force_ansi() {
+        set_up();
+
+        std::env::set_var("CLICOLOR", "0");
+        std::env::set_var("CLICOLOR_FOCE", "1");
+        let expected = Some(ColorLevel {
+            level: 1,
+            has_basic: true,
+            has_256: false,
+            has_16m: false,
+        });
+        assert_eq!(on(atty::Stream::Stdout), expected);
+    }
 }
