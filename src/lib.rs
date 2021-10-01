@@ -63,7 +63,7 @@ fn supports_color(stream: Stream) -> usize {
         || std::env::var("TERM").map(|term| check_ansi_color(&term)) == Ok(true)
         || std::env::consts::OS == "windows"
         || is_ci::uncached()
-        || std::env::var("CLICOLOR") != Ok("0".into())
+        || std::env::var("CLICOLOR").map_or(false, |v| v != "0")
     {
         1
     } else {
@@ -157,6 +157,7 @@ mod tests {
     }
 
     #[test]
+		#[cfg_attr(miri, ignore)]
     fn test_clicolor_ansi() {
         set_up();
 
@@ -170,15 +171,16 @@ mod tests {
         assert_eq!(on(atty::Stream::Stdout), expected);
 
         std::env::set_var("CLICOLOR", "0");
-        assert_eq!(on(atty::Stream::Stderr), None);
+        assert_eq!(on(atty::Stream::Stdout), None);
     }
 
     #[test]
+		#[cfg_attr(miri, ignore)]
     fn test_clicolor_force_ansi() {
         set_up();
 
         std::env::set_var("CLICOLOR", "0");
-        std::env::set_var("CLICOLOR_FOCE", "1");
+        std::env::set_var("CLICOLOR_FORCE", "1");
         let expected = Some(ColorLevel {
             level: 1,
             has_basic: true,
