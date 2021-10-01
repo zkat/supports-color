@@ -62,8 +62,8 @@ fn supports_color(stream: Stream) -> usize {
     } else if std::env::var("COLORTERM").is_ok()
         || std::env::var("TERM").map(|term| check_ansi_color(&term)) == Ok(true)
         || std::env::consts::OS == "windows"
-        || is_ci::uncached()
         || std::env::var("CLICOLOR").map_or(false, |v| v != "0")
+        || is_ci::uncached()
     {
         1
     } else {
