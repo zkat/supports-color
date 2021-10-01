@@ -1,5 +1,12 @@
 # `supports-color` Release Changelog
 
+<a name="1.2.0"></a>
+## 1.2.0 (2021-10-01)
+
+### Features
+
+* **clicolor:** Add CLICOLOR support (#4) ([71b0ff30](https://github.com/zkat/supports-color/commit/71b0ff30be9a9aa78d2d0197957d815fc5d1a357))
+
 <a name="1.1.1"></a>
 ## 1.1.1 (2021-09-22)
 
