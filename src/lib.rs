@@ -157,7 +157,15 @@ mod tests {
     }
 
     #[test]
-		#[cfg_attr(miri, ignore)]
+    #[cfg_attr(miri, ignore)]
+    fn test_empty_env() {
+        set_up();
+
+        assert_eq!(on(atty::Stream::Stdout), None);
+    }
+
+    #[test]
+    #[cfg_attr(miri, ignore)]
     fn test_clicolor_ansi() {
         set_up();
 
@@ -175,7 +183,7 @@ mod tests {
     }
 
     #[test]
-		#[cfg_attr(miri, ignore)]
+    #[cfg_attr(miri, ignore)]
     fn test_clicolor_force_ansi() {
         set_up();
 
