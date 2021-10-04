@@ -1,5 +1,16 @@
 # `supports-color` Release Changelog
 
+<a name="1.3.0"></a>
+## 1.3.0 (2021-10-03)
+
+### Bug Fixes
+
+* **clicolor:** Ignore unit tests on GH action and change order of CLICOLOR check (#5) ([370e8188](https://github.com/zkat/supports-color/commit/370e81885bf683287cdb2f639b59b86425d90e9c))
+
+### Features
+
+* **msrv:** Reduce MSRV from 1.54 to 1.42 (#6) ([a33337a6](https://github.com/zkat/supports-color/commit/a33337a653d3bfe71007947cd3ee57a787dcce64))
+
 <a name="1.2.0"></a>
 ## 1.2.0 (2021-10-01)
 
