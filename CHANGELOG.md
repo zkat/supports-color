@@ -1,5 +1,13 @@
 # `supports-color` Release Changelog
 
+<a name="1.3.1"></a>
+## 1.3.1 (2022-11-05)
+
+### Bug Fixes
+
+* **docs:** Update README example for accuracy (#7) ([88a56df7](https://github.com/zkat/supports-color/commit/88a56df7d3143cd71b1f5ad88b0f65ff6ddce8eb))
+* **alloc:** stop allocating unnecessary Strings (#8) ([606262f7](https://github.com/zkat/supports-color/commit/606262f7c1fd117610b582fa28ae0acf60341164))
+
 <a name="1.3.0"></a>
 ## 1.3.0 (2021-10-03)
 
