@@ -21,21 +21,22 @@
 //!     println!("No color support.");
 //! }
 //! ```
+#![allow(clippy::bool_to_int_with_if)]
 
 pub use atty::Stream;
 
 use std::cell::UnsafeCell;
+use std::env;
 use std::sync::Once;
 
 fn env_force_color() -> usize {
-    if let Ok(force) = std::env::var("FORCE_COLOR") {
+    if let Ok(force) = env::var("FORCE_COLOR") {
         match force.as_ref() {
-            "true" => 1,
+            "true" | "" => 1,
             "false" => 0,
-            f if f.is_empty() => 1,
             f => std::cmp::min(f.parse().unwrap_or(1), 3),
         }
-    } else if let Ok(cli_clr_force) = std::env::var("CLICOLOR_FORCE") {
+    } else if let Ok(cli_clr_force) = env::var("CLICOLOR_FORCE") {
         if cli_clr_force != "0" {
             1
         } else {
@@ -43,6 +44,21 @@ fn env_force_color() -> usize {
         }
     } else {
         0
+    }
+}
+
+fn env_no_color() -> bool {
+    match as_str(&env::var("NO_COLOR")) {
+        Ok("0") | Err(_) => false,
+        Ok(_) => true,
+    }
+}
+
+// same as Option::as_deref
+fn as_str<E>(option: &Result<String, E>) -> Result<&str, &E> {
+    match option {
+        Ok(inner) => Ok(inner),
+        Err(e) => Err(e),
     }
 }
 
@@ -61,35 +77,27 @@ fn translate_level(level: usize) -> Option<ColorLevel> {
 
 fn supports_color(stream: Stream) -> usize {
     let force_color = env_force_color();
-    let no_color = match std::env::var("NO_COLOR") {
-        Ok(val) if val == *"0" => false,
-        Ok(_) => true,
-        Err(_) => false,
-    };
-    let min = std::cmp::max(force_color, 0);
     if force_color > 0 {
         force_color
-    } else if !atty::is(stream) || no_color {
+    } else if env_no_color() || !atty::is(stream) || as_str(&env::var("TERM")) == Ok("dumb") {
         0
-    } else if std::env::var("TERM") == Ok("dumb".into()) {
-        min
-    } else if std::env::var("COLORTERM") == Ok("truecolor".into())
-        || std::env::var("TERM_PROGRAM") == Ok("iTerm.app".into())
+    } else if as_str(&env::var("COLORTERM")) == Ok("truecolor")
+        || as_str(&env::var("TERM_PROGRAM")) == Ok("iTerm.app")
     {
         3
-    } else if std::env::var("TERM_PROGRAM") == Ok("Apple_Terminal".into())
-        || std::env::var("TERM").map(|term| check_256_color(&term)) == Ok(true)
+    } else if as_str(&env::var("TERM_PROGRAM")) == Ok("Apple_Terminal")
+        || env::var("TERM").map(|term| check_256_color(&term)) == Ok(true)
     {
         2
-    } else if std::env::var("COLORTERM").is_ok()
-        || std::env::var("TERM").map(|term| check_ansi_color(&term)) == Ok(true)
-        || std::env::consts::OS == "windows"
-        || std::env::var("CLICOLOR").map_or(false, |v| v != "0")
+    } else if env::var("COLORTERM").is_ok()
+        || env::var("TERM").map(|term| check_ansi_color(&term)) == Ok(true)
+        || env::consts::OS == "windows"
+        || env::var("CLICOLOR").map_or(false, |v| v != "0")
         || is_ci::uncached()
     {
         1
     } else {
-        min
+        0
     }
 }
 
@@ -171,16 +179,22 @@ pub struct ColorLevel {
 
 #[cfg(test)]
 mod tests {
+    use std::sync::Mutex;
+
     use super::*;
+
+    // needed to prevent race conditions when mutating the environment
+    static TEST_LOCK: Mutex<()> = Mutex::new(());
 
     fn set_up() {
         // clears process env variable
-        std::env::vars().for_each(|(k, _v)| std::env::remove_var(k));
+        env::vars().for_each(|(k, _v)| env::remove_var(k));
     }
 
     #[test]
     #[cfg_attr(miri, ignore)]
     fn test_empty_env() {
+        let _test_guard = TEST_LOCK.lock().unwrap();
         set_up();
 
         assert_eq!(on(atty::Stream::Stdout), None);
@@ -189,9 +203,10 @@ mod tests {
     #[test]
     #[cfg_attr(miri, ignore)]
     fn test_clicolor_ansi() {
+        let _test_guard = TEST_LOCK.lock().unwrap();
         set_up();
 
-        std::env::set_var("CLICOLOR", "1");
+        env::set_var("CLICOLOR", "1");
         let expected = Some(ColorLevel {
             level: 1,
             has_basic: true,
@@ -200,17 +215,18 @@ mod tests {
         });
         assert_eq!(on(atty::Stream::Stdout), expected);
 
-        std::env::set_var("CLICOLOR", "0");
+        env::set_var("CLICOLOR", "0");
         assert_eq!(on(atty::Stream::Stdout), None);
     }
 
     #[test]
     #[cfg_attr(miri, ignore)]
     fn test_clicolor_force_ansi() {
+        let _test_guard = TEST_LOCK.lock().unwrap();
         set_up();
 
-        std::env::set_var("CLICOLOR", "0");
-        std::env::set_var("CLICOLOR_FORCE", "1");
+        env::set_var("CLICOLOR", "0");
+        env::set_var("CLICOLOR_FORCE", "1");
         let expected = Some(ColorLevel {
             level: 1,
             has_basic: true,
