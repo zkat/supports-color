@@ -23,11 +23,16 @@
 //! ```
 #![allow(clippy::bool_to_int_with_if)]
 
-pub use atty::Stream;
-
 use std::cell::UnsafeCell;
 use std::env;
 use std::sync::Once;
+
+/// possible stream sources
+#[derive(Clone, Copy, Debug)]
+pub enum Stream {
+    Stdout,
+    Stderr,
+}
 
 fn env_force_color() -> usize {
     if let Ok(force) = env::var("FORCE_COLOR") {
@@ -75,11 +80,19 @@ fn translate_level(level: usize) -> Option<ColorLevel> {
     }
 }
 
+fn is_a_tty(stream: Stream) -> bool {
+    use is_terminal::*;
+    match stream {
+        Stream::Stdout => std::io::stdout().is_terminal(),
+        Stream::Stderr => std::io::stderr().is_terminal(),
+    }
+}
+
 fn supports_color(stream: Stream) -> usize {
     let force_color = env_force_color();
     if force_color > 0 {
         force_color
-    } else if env_no_color() || !atty::is(stream) || as_str(&env::var("TERM")) == Ok("dumb") {
+    } else if env_no_color() || as_str(&env::var("TERM")) == Ok("dumb") || !is_a_tty(stream) {
         0
     } else if as_str(&env::var("COLORTERM")) == Ok("truecolor")
         || as_str(&env::var("TERM_PROGRAM")) == Ok("iTerm.app")
@@ -128,9 +141,8 @@ struct CacheCell(UnsafeCell<Option<ColorLevel>>);
 
 unsafe impl Sync for CacheCell {}
 
-static INIT: [Once; 3] = [Once::new(), Once::new(), Once::new()];
-static ON_CACHE: [CacheCell; 3] = [
-    CacheCell(UnsafeCell::new(None)),
+static INIT: [Once; 2] = [Once::new(), Once::new()];
+static ON_CACHE: [CacheCell; 2] = [
     CacheCell(UnsafeCell::new(None)),
     CacheCell(UnsafeCell::new(None)),
 ];
@@ -138,13 +150,13 @@ static ON_CACHE: [CacheCell; 3] = [
 macro_rules! assert_stream_in_bounds {
     ($($variant:ident)*) => {
         $(
-            const _: () = [(); 3][Stream::$variant as usize];
+            const _: () = [(); 2][Stream::$variant as usize];
         )*
     };
 }
 
 // Compile-time assertion that the below indexing will never panic
-assert_stream_in_bounds!(Stdout Stderr Stdin);
+assert_stream_in_bounds!(Stdout Stderr);
 
 /**
 Returns a [ColorLevel] if a [Stream] supports terminal colors, caching the result to
@@ -197,7 +209,7 @@ mod tests {
         let _test_guard = TEST_LOCK.lock().unwrap();
         set_up();
 
-        assert_eq!(on(atty::Stream::Stdout), None);
+        assert_eq!(on(Stream::Stdout), None);
     }
 
     #[test]
@@ -213,10 +225,10 @@ mod tests {
             has_256: false,
             has_16m: false,
         });
-        assert_eq!(on(atty::Stream::Stdout), expected);
+        assert_eq!(on(Stream::Stdout), expected);
 
         env::set_var("CLICOLOR", "0");
-        assert_eq!(on(atty::Stream::Stdout), None);
+        assert_eq!(on(Stream::Stdout), None);
     }
 
     #[test]
@@ -233,6 +245,6 @@ mod tests {
             has_256: false,
             has_16m: false,
         });
-        assert_eq!(on(atty::Stream::Stdout), expected);
+        assert_eq!(on(Stream::Stdout), expected);
     }
 }
