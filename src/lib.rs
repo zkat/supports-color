@@ -92,7 +92,10 @@ fn supports_color(stream: Stream) -> usize {
     let force_color = env_force_color();
     if force_color > 0 {
         force_color
-    } else if env_no_color() || as_str(&env::var("TERM")) == Ok("dumb") || !is_a_tty(stream) {
+    } else if env_no_color()
+        || as_str(&env::var("TERM")) == Ok("dumb")
+        || !(is_a_tty(stream) || env::var("IGNORE_IS_TERMINAL").map_or(false, |v| v != "0"))
+    {
         0
     } else if as_str(&env::var("COLORTERM")) == Ok("truecolor")
         || as_str(&env::var("TERM_PROGRAM")) == Ok("iTerm.app")
@@ -218,6 +221,7 @@ mod tests {
         let _test_guard = TEST_LOCK.lock().unwrap();
         set_up();
 
+        env::set_var("IGNORE_IS_TERMINAL", "1");
         env::set_var("CLICOLOR", "1");
         let expected = Some(ColorLevel {
             level: 1,
