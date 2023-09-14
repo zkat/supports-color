@@ -97,7 +97,8 @@ fn supports_color(stream: Stream) -> usize {
         || !(is_a_tty(stream) || env::var("IGNORE_IS_TERMINAL").map_or(false, |v| v != "0"))
     {
         0
-    } else if as_str(&env::var("COLORTERM")) == Ok("truecolor")
+    } else if env::var("COLORTERM").map(|colorterm| check_colorterm_16m(&colorterm)) == Ok(true)
+        || env::var("TERM").map(|term| check_term_16m(&term)) == Ok(true)
         || as_str(&env::var("TERM_PROGRAM")) == Ok("iTerm.app")
     {
         3
@@ -127,6 +128,14 @@ fn check_ansi_color(term: &str) -> bool {
         || term.contains("ansi")
         || term.contains("cygwin")
         || term.contains("linux")
+}
+
+fn check_colorterm_16m(colorterm: &str) -> bool {
+    colorterm == "truecolor" || colorterm == "24bit"
+}
+
+fn check_term_16m(term: &str) -> bool {
+    term.ends_with("direct") || term.ends_with("truecolor")
 }
 
 fn check_256_color(term: &str) -> bool {
