@@ -1,5 +1,13 @@
 # `supports-color` Release Changelog
 
+<a name="3.0.0"></a>
+## 3.0.0 (2024-02-04)
+
+### Features
+
+* **deps:** Replace `is-terminal` with `std::io::IsTerminal` (#11) ([6fb6e359](https://github.com/zkat/supports-color/commit/6fb6e35961055a701264d879744f615c25b7629d))
+    * **BREAKING CHANGE**: This bumps the MSRV to 1.70.0 due to the new `std::io::IsTerminal` API.
+
 <a name="2.1.0"></a>
 ## 2.1.0 (2023-09-20)
 
