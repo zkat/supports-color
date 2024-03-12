@@ -100,6 +100,8 @@ fn supports_color(stream: Stream) -> usize {
     } else if env::var("COLORTERM").map(|colorterm| check_colorterm_16m(&colorterm)) == Ok(true)
         || env::var("TERM").map(|term| check_term_16m(&term)) == Ok(true)
         || as_str(&env::var("TERM_PROGRAM")) == Ok("iTerm.app")
+        || as_str(&env::var("WT_SESSION")).is_ok()
+
     {
         3
     } else if as_str(&env::var("TERM_PROGRAM")) == Ok("Apple_Terminal")
