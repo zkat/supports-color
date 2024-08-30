@@ -107,8 +107,7 @@ fn supports_color(stream: Stream) -> usize {
     {
         2
     } else if env::var("COLORTERM").is_ok()
-        || env::var("TERM").map(|term| check_ansi_color(&term)) == Ok(true)
-        || env::consts::OS == "windows"
+        || check_ansi_color(env::var("TERM").ok().as_deref())
         || env::var("CLICOLOR").map_or(false, |v| v != "0")
         || is_ci::uncached()
     {
@@ -118,16 +117,27 @@ fn supports_color(stream: Stream) -> usize {
     }
 }
 
-fn check_ansi_color(term: &str) -> bool {
-    term.starts_with("screen")
-        || term.starts_with("xterm")
-        || term.starts_with("vt100")
-        || term.starts_with("vt220")
-        || term.starts_with("rxvt")
-        || term.contains("color")
-        || term.contains("ansi")
-        || term.contains("cygwin")
-        || term.contains("linux")
+#[cfg(windows)]
+fn check_ansi_color(term: Option<&str>) -> bool {
+    if let Some(term) = term {
+        // cygwin doesn't seem to support ANSI escape sequences and instead has its own variety.
+        term != "dumb" && term != "cygwin"
+    } else {
+        // TERM is generally not set on Windows. It's reasonable to assume that all Windows
+        // terminals support ANSI escape sequences (since Windows 10 version 1511).
+        true
+    }
+}
+
+#[cfg(not(windows))]
+fn check_ansi_color(term: Option<&str>) -> bool {
+    if let Some(term) = term {
+        // dumb terminals don't support ANSI escape sequences.
+        term != "dumb"
+    } else {
+        // TERM is not set, which is really weird on Unix systems.
+        false
+    }
 }
 
 fn check_colorterm_16m(colorterm: &str) -> bool {
