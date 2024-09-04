@@ -1,5 +1,12 @@
 # `supports-color` Release Changelog
 
+<a name="3.0.1"></a>
+## 3.0.1 (2024-09-03)
+
+### Bug Fixes
+
+* **ansi:** improve detection of terminals over SSH (#19) ([370dc2b7](https://github.com/zkat/supports-color/commit/370dc2b754dd508e29fe1f586532e91a050f5ed5))
+
 <a name="3.0.0"></a>
 ## 3.0.0 (2024-02-04)
 
