@@ -1,5 +1,12 @@
 # `supports-color` Release Changelog
 
+<a name="3.0.2"></a>
+## 3.0.2 (2024-11-26)
+
+### Bug Fixes
+
+* **unsafe:** Remove `unsafe` code in favor of `OnceLock` (#20) ([4b299e2a](https://github.com/zkat/supports-color/commit/4b299e2ab5417dc47cddd07b7527b86286cf21a5))
+
 <a name="3.0.1"></a>
 ## 3.0.1 (2024-09-03)
 
